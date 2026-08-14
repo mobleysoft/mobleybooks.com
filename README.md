@@ -19,7 +19,7 @@ future direct store are documented in `docs/STORE_PLATFORM.md` and
 
 ```sh
 node --test test/*.test.mjs
-python3 -m unittest test/test_library_reconciler.py
+python3 -m unittest discover -s test -p 'test_*.py'
 python3 tools/library_reconciler.py --strict
 node tools/build-worker-module.mjs ../nginx/workers/venture-fleet/src/mobleybooks.generated.js
 ```

@@ -1,20 +1,16 @@
 from __future__ import annotations
 
-import importlib.util
 import json
 from pathlib import Path
 import sqlite3
+import sys
 import tempfile
 import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location(
-    "library_reconciler", ROOT / "tools" / "library_reconciler.py"
-)
-assert SPEC and SPEC.loader
-reconciler = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(reconciler)
+sys.path.insert(0, str(ROOT))
+from tools import library_reconciler as reconciler
 
 
 def create_unlost_database(path: Path, rows: list[tuple]) -> None:

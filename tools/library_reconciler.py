@@ -73,7 +73,6 @@ AUTHORED_PATH_MARKERS = (
     "/business/writing/",
     "/0transfer/books/docs/",
     "/0transfer/books/orgus/",
-    "/google drive",
 )
 GENERATED_PATH_MARKERS = (
     "/april/",
@@ -100,6 +99,16 @@ SUPPORT_MARKERS = (
     "readme",
     "staging_output",
     "log.txt",
+)
+SUPPORT_PATH_MARKERS = (
+    "/meta/editing/contracts/",
+    "/meta/howtowrite/",
+    "/bookcovers/",
+)
+CREATIVE_REVIEW_PATH_MARKERS = (
+    "/comedy/",
+    "/lyrics/",
+    "/music/",
 )
 SYSTEM_PATH_MARKERS = (
     "/.git/",
@@ -132,7 +141,11 @@ NON_BOOK_NAME_MARKERS = (
     "report",
 )
 MATURE_REVIEW_MARKERS = (
-    "/erotic",
+    "erotica",
+    "femboy",
+    "intimacy",
+    "sissy",
+    "/erotic/",
     "/adult",
     "/mature",
 )
@@ -266,6 +279,17 @@ def candidate_score(asset: Asset) -> int:
     return score
 
 
+def title_and_word_hint(asset: Asset) -> tuple[str, int]:
+    filename = asset.name
+    hint = 0
+    if asset.extension.casefold() == ".gdoc" and "/meta/drafts/" in asset.path.casefold():
+        match = re.match(r"^(\d{2,5})(?=[A-Za-z])", Path(filename).stem)
+        if match:
+            hint = int(match.group(1))
+            filename = Path(filename).stem[len(match.group(1)) :] + asset.extension
+    return clean_title(filename), hint
+
+
 def clean_title(filename: str) -> str:
     value = Path(filename).stem
     value = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", value)
@@ -275,6 +299,7 @@ def clean_title(filename: str) -> str:
     value = re.sub(r"\b(?:published|final|fixed|again|copy)\b", " ", value, flags=re.I)
     value = re.sub(r"\(\d+\)", " ", value)
     value = re.sub(r"(?:^|\s)20\d{6}(?:\s|$)", " ", value)
+    value = re.sub(r"(?:^|\s)\d{6}(?:\s|$)", " ", value)
     value = re.sub(r"\s+", " ", value).strip(" ._")
     return value or "Untitled"
 
@@ -285,7 +310,7 @@ def normalized_title(value: str) -> str:
 
 
 def work_key(asset: Asset) -> str:
-    title = clean_title(asset.name)
+    title, _ = title_and_word_hint(asset)
     normalized = normalized_title(title)
     if normalized in GENERIC_TITLES or len(normalized) < 3:
         parent = Path(asset.path).parent.name
@@ -296,10 +321,14 @@ def work_key(asset: Asset) -> str:
 def classify_asset(asset: Asset) -> str:
     path = asset.path.casefold()
     name = asset.name.casefold()
-    if any(marker in name for marker in SUPPORT_MARKERS):
+    if any(marker in name for marker in SUPPORT_MARKERS) or any(
+        marker in path for marker in SUPPORT_PATH_MARKERS
+    ):
         return "support_material"
     if any(marker in path for marker in GENERATED_PATH_MARKERS) or re.search(r"_book_20\d{6}", name):
         return "legacy_generated_candidate"
+    if any(marker in path for marker in CREATIVE_REVIEW_PATH_MARKERS):
+        return "review_candidate"
     if any(marker in path for marker in AUTHORED_PATH_MARKERS):
         return "authored_candidate"
     return "review_candidate"
@@ -570,11 +599,21 @@ def build_asset_works(
         if dominant == "support_material":
             continue
 
-        measured: list[tuple[Asset, int, str]] = []
+        decision = decisions.get("works", {}).get(key, {})
+        blocked = decision.get("disposition") == "exclude" or any(
+            marker in f"{asset.path}/{asset.name}".casefold()
+            for asset in group
+            for marker in (*MATURE_REVIEW_MARKERS, *CREATIVE_REVIEW_PATH_MARKERS)
+        )
+        measured: list[tuple[Asset, int, str, str]] = []
         for asset in group:
-            text = extract_text(asset.local_path, asset.extension)
-            measured.append((asset, count_words(text), text))
-        representative, words, _ = max(
+            text = "" if blocked else extract_text(asset.local_path, asset.extension)
+            measured_words = count_words(text)
+            _, hint = title_and_word_hint(asset)
+            words = measured_words or hint
+            word_kind = "extracted" if measured_words else ("filename_hint" if hint else "unavailable")
+            measured.append((asset, words, text, word_kind))
+        representative, words, _, word_kind = max(
             measured,
             key=lambda item: (
                 class_rank[classify_asset(item[0])],
@@ -583,16 +622,12 @@ def build_asset_works(
                 item[0].authority,
             ),
         )
-        title = clean_title(representative.name)
+        title, _ = title_and_word_hint(representative)
         series = infer_series(title, representative.path, catalog)
         declared_status = "Discovered draft candidate"
         status = structural_status(words, declared_status)
         target = target_words(words, declared_status, series, series_targets)
         delta = max(0, target - words)
-        decision = decisions.get("works", {}).get(key, {})
-        blocked = decision.get("disposition") == "exclude" or any(
-            marker in representative.path.casefold() for marker in MATURE_REVIEW_MARKERS
-        )
         fingerprint = representative.sha256
         fingerprint_kind = "unlost-content" if fingerprint else ""
         if not fingerprint:
@@ -611,6 +646,7 @@ def build_asset_works(
                 "declared_status": declared_status,
                 "structural_status": status,
                 "current_words": words,
+                "word_count_kind": word_kind,
                 "target_words": target,
                 "length_delta": delta,
                 "completion_ratio": round(min(1.0, words / target), 4) if target else 0,
@@ -755,8 +791,12 @@ def reconcile(args: argparse.Namespace) -> dict[str, Any]:
     targets = series_word_targets(catalog)
     discovered, metrics = build_asset_works(assets, catalog, decisions, targets, args.min_score)
     known = catalog_draft_works(catalog, targets)
-    known_ids = {work["work_id"] for work in known}
-    works = known + [work for work in discovered if work["work_id"] not in known_ids]
+    catalog_ids = {
+        identifier
+        for entry in catalog.get("titles", [])
+        for identifier in (safe_slug(entry["slug"]), safe_slug(normalized_title(entry["title"])))
+    }
+    works = known + [work for work in discovered if work["work_id"] not in catalog_ids]
 
     lineage_hash, _ = sha256_file(DEFAULT_LINEAGE)
     profiles: list[dict[str, Any]] = []

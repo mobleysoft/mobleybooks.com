@@ -9,6 +9,9 @@ import { pathToFileURL } from "node:url";
 const root = path.resolve(import.meta.dirname, "..");
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "mobleybooks-worker-"));
 const generatedPath = path.join(temporary, "mobleybooks.generated.mjs");
+const sourceCatalog = JSON.parse(
+  fs.readFileSync(path.join(root, "catalog", "publications.json"), "utf8"),
+);
 execFileSync(process.execPath, [path.join(root, "tools", "build-worker-module.mjs"), generatedPath]);
 const { handleMobleyBooks } = await import(pathToFileURL(generatedPath));
 
@@ -30,7 +33,7 @@ test("renders a searchable specialized library", async () => {
 test("exposes bounded catalog and health endpoints", async () => {
   const catalog = await handleMobleyBooks(new Request("https://mobleybooks.com/catalog.json")).json();
   assert.equal(catalog.title_count, catalog.titles.length);
-  assert.equal(catalog.title_count, 23);
+  assert.equal(catalog.title_count, sourceCatalog.titles.length);
   assert.equal(Object.hasOwn(catalog.titles[0], "source_ref"), false);
 
   const health = await handleMobleyBooks(new Request("https://mobleybooks.com/health")).json();
