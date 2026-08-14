@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "updated_at": "2026-08-13T20:40:00-04:00",
+  "schema_version": "1.1",
+  "updated_at": "2026-08-14T02:30:09-04:00",
   "publication_policy": "Explicit SFW allowlist. Discovery sources remain private and cannot publish directly.",
   "titles": [
     {
@@ -10,11 +10,12 @@
       "series_position": "Book 1",
       "author": "John Alexander Mobley",
       "genre": "Isekai fantasy survivalism",
-      "status": "Published manuscript",
+      "status": "Published ebook and audiobook",
       "words": 5115,
       "description": "An exhausted office worker is transported into an immense, luminous wilderness and given the chance to rebuild his life through practical survival craft.",
       "accent": "#86a84a",
-      "source_kind": "Local manuscript and Dell replica",
+      "retail_url": "https://www.amazon.com/dp/B0D6LCN4F1",
+      "source_kind": "Local manuscript, Dell replica, and KDP record",
       "source_ref": "verdantvale/Verdant Vale 00 Published.txt"
     },
     {
@@ -24,11 +25,12 @@
       "series_position": "Book 2",
       "author": "John Alexander Mobley",
       "genre": "Fantasy LitRPG adventure",
-      "status": "Published manuscript",
+      "status": "Published ebook and audiobook",
       "words": 16054,
       "description": "John meets Aeliana, a forest elf whose knowledge of the Vale turns solitary survival into an alliance built through language, craft, and trust.",
       "accent": "#c8954d",
-      "source_kind": "Local manuscript and Dell replica",
+      "retail_url": "https://www.amazon.com/dp/B0D8N25C13",
+      "source_kind": "Local manuscript, Dell replica, and KDP record",
       "source_ref": "verdantvale/Verdant Vale 01 Aeliana PUBLISHED.txt"
     },
     {
@@ -86,6 +88,51 @@
       "accent": "#d08f9f",
       "source_kind": "Local manuscript and Dell replica",
       "source_ref": "verdantvale/Verdant Vale 03 Seraphina Published.txt"
+    },
+    {
+      "slug": "arcane-seven-mission-zero",
+      "title": "Arcane Seven: Mission Zero",
+      "series": "Arcane Seven",
+      "series_position": "Book 1 / The Eldritch Conspiracy",
+      "author": "John Alexander Mobley",
+      "genre": "Magical tactical military fantasy",
+      "status": "Published ebook and audiobook",
+      "words": 15940,
+      "description": "A Bureau of Arcane Affairs team confronts an eldritch conspiracy as forgotten magical civilizations and modern threats converge.",
+      "accent": "#7865a8",
+      "retail_url": "https://www.amazon.com/dp/B0D8RLP19Z",
+      "source_kind": "Dell manuscript and KDP record",
+      "source_ref": "dell_books/Docs/Arcane Seven (2).docx"
+    },
+    {
+      "slug": "then-came-man",
+      "title": "Then Came Man",
+      "series": "The Evolutionary Bible",
+      "series_position": "Books 1-2",
+      "author": "John Alexander Mobley",
+      "genre": "Speculative evolutionary mythology",
+      "status": "Published ebook and audiobook",
+      "words": 2545,
+      "description": "Two linked narrative poems move from cosmic origins and early hominid survival to the invention of tools, kinship, and conflict.",
+      "accent": "#9a603f",
+      "retail_url": "https://www.amazon.com/dp/B07CKRY5WK",
+      "source_kind": "Google Drive manuscript and KDP record",
+      "source_ref": "drive:1wFiG8iUxvZfIXSs-ePcO-Ryce2pzHxCTI7P6TVYIKEA"
+    },
+    {
+      "slug": "the-color-of-hope",
+      "title": "The Color of Hope: Rubber Duck Self Optimization",
+      "series": "Standalone",
+      "series_position": "Self-help manual",
+      "author": "John Alexander Mobley",
+      "genre": "Reflective personal development",
+      "status": "Published ebook",
+      "words": 7157,
+      "description": "A practical guide to self-reflection, healing, and growth that uses rubber duck debugging as a model for thinking through difficult experiences.",
+      "accent": "#d2a829",
+      "retail_url": "https://www.amazon.com/dp/B0CX5N4SVD",
+      "source_kind": "Dell manuscript and KDP record",
+      "source_ref": "dell_books/Docs/The Color Of Hope_ Rubber Duck Self Optimization.docx"
     },
     {
       "slug": "canticle-of-champions-alhen",

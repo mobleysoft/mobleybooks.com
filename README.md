@@ -8,6 +8,10 @@ discover candidates, but only explicitly reviewed entries in
 private, or unverified material must never be copied into the catalog, tests,
 generated Worker module, logs, or public source.
 
+Retail links are allowed only when an authenticated KDP record confirms the
+edition and the URL is a canonical Amazon ASIN route. A retail record does not
+override the editorial allowlist.
+
 ```sh
 node --test test/*.test.mjs
 node tools/build-worker-module.mjs ../nginx/workers/venture-fleet/src/mobleybooks.generated.js

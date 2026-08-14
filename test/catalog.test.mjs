@@ -23,8 +23,28 @@ test("every public entry is grounded and workplace-safe", () => {
     assert.ok(entry.source_kind);
     assert.ok(entry.source_ref);
     assert.ok(Number.isInteger(entry.words) && entry.words > 0);
+    if (entry.retail_url) {
+      assert.match(entry.retail_url, /^https:\/\/www\.amazon\.com\/dp\/[A-Z0-9]+$/);
+    }
     assert.doesNotMatch(JSON.stringify(entry), prohibited);
   }
+});
+
+test("verified John Alexander Mobley retail works are represented", () => {
+  const retailWorks = catalog.titles.filter(
+    (entry) => entry.author === "John Alexander Mobley" && entry.retail_url,
+  );
+  assert.equal(retailWorks.length, 5);
+  assert.deepEqual(
+    new Set(retailWorks.map((entry) => entry.slug)),
+    new Set([
+      "arcane-seven-mission-zero",
+      "then-came-man",
+      "the-color-of-hope",
+      "verdant-vale-aeliana",
+      "verdant-vale-day-zero",
+    ]),
+  );
 });
 
 test("public catalog contains no private absolute paths", () => {

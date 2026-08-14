@@ -21,13 +21,16 @@ test("renders a searchable specialized library", async () => {
   assert.match(body, /The archive is private/);
   assert.match(body, /Respawn City/);
   assert.match(body, /The New Founding: Friendly Fire/);
+  assert.match(body, /Arcane Seven: Mission Zero/);
+  assert.match(body, /View published edition/);
+  assert.match(body, /https:\/\/www\.amazon\.com\/dp\/B0D8RLP19Z/);
   assert.doesNotMatch(body, /\/Users\/|\/Volumes\//);
 });
 
 test("exposes bounded catalog and health endpoints", async () => {
   const catalog = await handleMobleyBooks(new Request("https://mobleybooks.com/catalog.json")).json();
   assert.equal(catalog.title_count, catalog.titles.length);
-  assert.ok(catalog.title_count >= 15);
+  assert.equal(catalog.title_count, 23);
   assert.equal(Object.hasOwn(catalog.titles[0], "source_ref"), false);
 
   const health = await handleMobleyBooks(new Request("https://mobleybooks.com/health")).json();
