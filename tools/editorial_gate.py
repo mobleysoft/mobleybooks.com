@@ -22,6 +22,12 @@ except ImportError:
 
 DEFAULT_OUTPUT_ROOT = Path.home() / ".local" / "share" / "mobleybooks" / "editorial-reviews"
 DECISIONS = {"approve", "revise", "split", "reject"}
+DECISION_READINESS_CEILINGS = {
+    "approve": 100,
+    "revise": 79,
+    "split": 69,
+    "reject": 39,
+}
 
 
 def utc_now() -> str:
@@ -59,9 +65,9 @@ def bounded_excerpt(text: str, maximum: int = 14_000) -> str:
     midpoint = len(text) // 2
     return (
         text[:head]
-        + "\n\n[EDITORIAL EXCERPT: interior omitted]\n\n"
+        + "\n\n[EDITORIAL SAMPLE WINDOW: source continues outside this supplied window]\n\n"
         + text[midpoint - middle // 2 : midpoint + middle // 2]
-        + "\n\n[EDITORIAL EXCERPT: interior omitted]\n\n"
+        + "\n\n[EDITORIAL SAMPLE WINDOW: source continues outside this supplied window]\n\n"
         + text[-tail:]
     )
 
@@ -131,6 +137,22 @@ def normalize_chapter_review(payload: dict[str, Any], index: int) -> dict[str, A
     }
 
 
+def reconcile_readiness(
+    decision: str,
+    synthesis_score: float,
+    chapter_reviews: list[dict[str, Any]],
+) -> int:
+    """Keep a model's summary score consistent with its underlying evidence."""
+    if not chapter_reviews:
+        return 0
+    chapter_score = round(
+        sum(review["commercial_readiness_score"] for review in chapter_reviews)
+        / len(chapter_reviews)
+    )
+    score = min(round(synthesis_score), chapter_score)
+    return max(0, min(score, DECISION_READINESS_CEILINGS[decision]))
+
+
 def review_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
     source = args.source_overrides.get(str(entry["slug"]))
     if source is None:
@@ -165,6 +187,9 @@ Evaluate this section in the context of a complete commercial book. Use this exa
   "recommended_action": "approve|revise|split|reject"
 }}
 
+IMPORTANT: Any bracketed EDITORIAL SAMPLE WINDOW marker was inserted by the review tool. It is not
+part of the manuscript and is not evidence that the source is truncated or unfinished.
+
 PASSAGE:
 {bounded_excerpt(section, args.max_chars)}"""
             review = normalize_chapter_review(
@@ -183,7 +208,8 @@ SECTION REVIEWS: {compact}
 
 Synthesize a strict release decision. Multiple chapter endings that repeatedly announce victory, a new era,
 or that the real adventure has just begun are structural defects, not strengths. A genre-premise abandoned
-mid-book is a release blocker. Use this exact schema:
+mid-book is a release blocker. Disregard any chapter defect based only on an EDITORIAL SAMPLE WINDOW marker;
+the marker represents bounded review input, not missing source text. Use this exact schema:
 {{
   "decision": "approve|revise|split|reject",
   "commercial_readiness_score": 0,
@@ -201,7 +227,7 @@ mid-book is a release blocker. Use this exact schema:
         raw_readiness = float(synthesis.get("commercial_readiness_score", 0))
         if 0 <= raw_readiness <= 10:
             raw_readiness *= 10
-        readiness = max(0, min(100, round(raw_readiness)))
+        readiness = reconcile_readiness(decision, raw_readiness, reviews)
     except (TypeError, ValueError):
         readiness = 0
     report = {

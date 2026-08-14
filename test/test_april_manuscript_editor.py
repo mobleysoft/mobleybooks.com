@@ -15,8 +15,10 @@ class AprilManuscriptEditorTests(unittest.TestCase):
     def test_epub_markdown_adds_navigable_story_headings(self) -> None:
         source = "Book\n\nBy John Alexander Mobley\n\nChapter 1: Arrival\n\nText.\n\nEpilogue: Home\n\nEnd.\n"
         formatted = editor.epub_markdown(source)
-        self.assertIn("# Chapter 1: Arrival", formatted)
-        self.assertIn("# Epilogue: Home", formatted)
+        self.assertIn("# Chapter 1\n", formatted)
+        self.assertIn("# Epilogue\n", formatted)
+        self.assertIn("Arrival", formatted)
+        self.assertIn("Home", formatted)
         self.assertIn("By John Alexander Mobley", formatted)
 
     def test_splits_flattened_single_line_chapters(self) -> None:

@@ -63,6 +63,7 @@ def split_sentences(text: str) -> list[str]:
 
 def audit_text(text: str, *, source: str = "") -> dict:
     words = re.findall(r"\b[\w]+(?:['\u2019-][\w]+)*\b", text, flags=re.UNICODE)
+    nonempty_lines = [line for line in text.splitlines() if line.strip()]
     sentences = split_sentences(text)
     sentence_counts = Counter(sentences)
     duplicate_instances = sum(count - 1 for count in sentence_counts.values() if count > 1)
@@ -94,6 +95,8 @@ def audit_text(text: str, *, source: str = "") -> dict:
         failures.append("excessive_exact_sentence_repetition")
     if len(words) >= 5_000 and len(chapter_matches) < 3:
         failures.append("insufficient_detectable_structure")
+    if len(words) >= 1_000 and len(nonempty_lines) < 3:
+        failures.append("flattened_layout")
     if incomplete_ending:
         failures.append("incomplete_ending_marker")
 
@@ -103,6 +106,7 @@ def audit_text(text: str, *, source: str = "") -> dict:
         "words": len(words),
         "sentences": len(sentences),
         "chapters_detected": len(chapter_matches),
+        "nonempty_lines": len(nonempty_lines),
         "exact_duplicate_sentence_instances": duplicate_instances,
         "exact_duplicate_sentence_ratio": round(duplicate_ratio, 4),
         "contamination": contamination,

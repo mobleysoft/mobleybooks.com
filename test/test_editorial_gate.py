@@ -14,6 +14,7 @@ class EditorialGateTests(unittest.TestCase):
         self.assertLessEqual(len(excerpt), 6_200)
         self.assertTrue(excerpt.startswith("A" * 200))
         self.assertIn("MIDDLE", excerpt)
+        self.assertIn("source continues outside this supplied window", excerpt)
         self.assertTrue(excerpt.endswith("Z" * 200))
 
     def test_normalizes_invalid_model_decision_and_scores(self) -> None:
@@ -47,6 +48,22 @@ class EditorialGateTests(unittest.TestCase):
         self.assertEqual(80, review["coherence_score"])
         self.assertEqual(70, review["prose_score"])
         self.assertEqual(60, review["commercial_readiness_score"])
+
+    def test_reconciles_rejected_score_with_chapter_evidence(self) -> None:
+        readiness = editorial_gate.reconcile_readiness(
+            "reject",
+            100,
+            [{"commercial_readiness_score": 10}],
+        )
+        self.assertEqual(10, readiness)
+
+    def test_caps_revise_score_below_release_ready(self) -> None:
+        readiness = editorial_gate.reconcile_readiness(
+            "revise",
+            100,
+            [{"commercial_readiness_score": 100}],
+        )
+        self.assertEqual(79, readiness)
 
     def test_parses_existing_source_override(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

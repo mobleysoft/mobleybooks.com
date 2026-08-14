@@ -33,6 +33,16 @@ class ManuscriptAuditorTests(unittest.TestCase):
         self.assertIn("assistant_or_rendering_contamination", report["failures"])
         self.assertIn("incomplete_ending_marker", report["failures"])
 
+    def test_blocks_book_length_payload_flattened_to_one_line(self) -> None:
+        chapters = " ".join(
+            f"Chapter {chapter}: Movement " + ("A complete sentence follows. " * 400)
+            for chapter in range(1, 6)
+        )
+        report = manuscript_auditor.audit_text(chapters)
+        self.assertFalse(report["mechanical_gate_passed"])
+        self.assertIn("flattened_layout", report["failures"])
+        self.assertEqual(1, report["nonempty_lines"])
+
 
 if __name__ == "__main__":
     unittest.main()
