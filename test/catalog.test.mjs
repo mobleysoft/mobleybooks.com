@@ -34,7 +34,7 @@ test("verified John Alexander Mobley retail works are represented", () => {
   const retailWorks = catalog.titles.filter(
     (entry) => entry.author === "John Alexander Mobley" && entry.retail_url,
   );
-  assert.equal(retailWorks.length, 5);
+  assert.equal(retailWorks.length, 7);
   assert.deepEqual(
     new Set(retailWorks.map((entry) => entry.slug)),
     new Set([
@@ -43,6 +43,8 @@ test("verified John Alexander Mobley retail works are represented", () => {
       "the-color-of-hope",
       "verdant-vale-aeliana",
       "verdant-vale-day-zero",
+      "verdant-vale-heart-s-blossom",
+      "verdant-vale-mira",
     ]),
   );
 });

@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-08-14T02:30:09-04:00",
+  "updated_at": "2026-08-14T02:41:50-04:00",
   "publication_policy": "Explicit SFW allowlist. Discovery sources remain private and cannot publish directly.",
   "titles": [
     {
@@ -40,11 +40,12 @@
       "series_position": "Book 3",
       "author": "John Alexander Mobley",
       "genre": "Fantasy LitRPG adventure",
-      "status": "Published manuscript",
+      "status": "Published ebook and audiobook",
       "words": 21320,
       "description": "A magical trap introduces Mira, a gifted tracker whose search for her past joins the guardians' widening quest across Verdant Vale.",
       "accent": "#b95f3d",
-      "source_kind": "Local manuscript and Dell replica",
+      "retail_url": "https://www.amazon.com/dp/B0D8WKFGHJ",
+      "source_kind": "Local manuscript, Dell replica, and KDP record",
       "source_ref": "verdantvale/Verdant Vale 02 Mira Published.txt"
     },
     {
@@ -82,11 +83,12 @@
       "series_position": "Book 4",
       "author": "John Alexander Mobley",
       "genre": "Fantasy LitRPG adventure",
-      "status": "Published manuscript",
+      "status": "Published ebook and audiobook",
       "words": 21429,
       "description": "A disturbance at the Heart Tree leads the guardians through elemental trials and into an encounter with Seraphina, the nature goddess.",
       "accent": "#d08f9f",
-      "source_kind": "Local manuscript and Dell replica",
+      "retail_url": "https://www.amazon.com/dp/B0D92SXRY2",
+      "source_kind": "Local manuscript, Dell replica, and KDP record",
       "source_ref": "verdantvale/Verdant Vale 03 Seraphina Published.txt"
     },
     {
