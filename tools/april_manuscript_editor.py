@@ -178,11 +178,14 @@ def edit_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, Any
     previous_tail = ""
     segment_records: list[dict[str, Any]] = []
     edited_chunks: list[str] = []
+    processed_this_run = 0
     for index, chunk in enumerate(chunks, start=1):
         destination = segment_dir / f"{index:04d}.md"
         if destination.is_file() and not args.force:
             edited = destination.read_text(encoding="utf-8")
         else:
+            if args.max_segments and processed_this_run >= args.max_segments:
+                break
             prompt = (
                 f"BOOK: {entry['title']}\nAUTHOR: {AUTHOR}\n"
                 f"PASSAGE: {index} of {len(chunks)}\n"
@@ -196,6 +199,7 @@ def edit_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, Any
             if failures:
                 raise RuntimeError(f"segment {index} rejected: {', '.join(failures)}")
             atomic_write(destination, edited.strip() + "\n")
+            processed_this_run += 1
         previous_tail = edited
         edited_chunks.append(edited.strip())
         segment_records.append(
@@ -224,6 +228,21 @@ def edit_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, Any
             )
             + "\n",
         )
+
+    if len(edited_chunks) < len(chunks):
+        return {
+            "schema": "mobleybooks.release-candidate.v1",
+            "status": "editing_in_progress",
+            "title": entry["title"],
+            "slug": entry["slug"],
+            "author": AUTHOR,
+            "source": str(source),
+            "source_sha256": source_hash,
+            "segments_total": len(chunks),
+            "segments_completed": len(edited_chunks),
+            "processed_this_run": processed_this_run,
+            "updated_at": utc_now(),
+        }
 
     manuscript = "\n\n".join(edited_chunks).strip() + "\n"
     audit = audit_text(manuscript, source=str(source))
@@ -275,6 +294,7 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=18087)
     parser.add_argument("--max-chars", type=int, default=8_000)
     parser.add_argument("--max-tokens", type=int, default=3_072)
+    parser.add_argument("--max-segments", type=int, default=0)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
     entries = {entry["slug"]: entry for entry in load_catalog(args.catalog)["titles"]}
