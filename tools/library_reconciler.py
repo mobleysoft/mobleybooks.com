@@ -374,7 +374,8 @@ def count_words(value: str) -> int:
 def infer_series(title: str, path: str, catalog: dict[str, Any]) -> str:
     key = normalized_title(title)
     for entry in catalog.get("titles", []):
-        if normalized_title(entry["title"]) == key:
+        entry_title = entry.get("title")
+        if entry_title and normalized_title(entry_title) == key:
             return entry.get("series", "Standalone")
     joined = f"{title} {path}".casefold()
     known = {
@@ -572,14 +573,105 @@ def catalog_draft_works(catalog: dict[str, Any], series_targets: dict[str, int])
     return works
 
 
+def join_catalog_sources(
+    known: list[dict[str, Any]],
+    discovered: list[dict[str, Any]],
+    series_targets: dict[str, int],
+) -> tuple[list[dict[str, Any]], set[str]]:
+    """Attach the strongest accessible Unlost source to a catalog identity."""
+    consumed: set[str] = set()
+    resolved: list[dict[str, Any]] = []
+    for work in known:
+        target_title = normalized_title(work["title"])
+        target_tokens = set(target_title.split())
+        source_name = Path(work["representative_source"]["path"]).name.casefold()
+        matches: list[dict[str, Any]] = []
+        for candidate in discovered:
+            if candidate["editorial_blocked"]:
+                continue
+            candidate_title = normalized_title(candidate["title"])
+            candidate_tokens = set(candidate_title.split())
+            candidate_name = Path(candidate["representative_source"]["path"]).name.casefold()
+            exact_identity = candidate["work_id"] == work["work_id"]
+            exact_title = candidate_title == target_title
+            exact_source = bool(source_name and source_name == candidate_name)
+            series_title = (
+                work["series"] != "Standalone"
+                and work["series"] == candidate["series"]
+                and len(target_tokens) >= 2
+                and target_tokens.issubset(candidate_tokens)
+            )
+            if exact_identity or exact_title or exact_source or series_title:
+                matches.append(candidate)
+        if not matches:
+            resolved.append(work)
+            continue
+        source = max(
+            matches,
+            key=lambda item: (
+                item["source_accessible"],
+                item["source_fingerprint_kind"] in {"content", "unlost-content"},
+                item["current_words"],
+                item["source_count"],
+            ),
+        )
+        consumed.add(source["work_id"])
+        words = source["current_words"] or work["current_words"]
+        target = target_words(words, work["declared_status"], work["series"], series_targets)
+        delta = max(0, target - words)
+        accessible = bool(source["source_accessible"])
+        resolved.append(
+            {
+                **work,
+                "current_words": words,
+                "target_words": target,
+                "length_delta": delta,
+                "completion_ratio": round(min(1.0, words / target), 4) if target else 0,
+                "source_count": source["source_count"],
+                "source_accessible": accessible,
+                "source_fingerprint": source["source_fingerprint"],
+                "source_fingerprint_kind": source["source_fingerprint_kind"],
+                "representative_source": source["representative_source"],
+                "alternate_sources": source.get("alternate_sources", []),
+                "source_resolution": "unlost-joined",
+                "remaining_gates": remaining_gates(
+                    work["declared_status"], work["series"], delta, accessible
+                ),
+            }
+        )
+    return resolved, consumed
+
+
 def build_asset_works(
     assets: Iterable[Asset],
     catalog: dict[str, Any],
     decisions: dict[str, Any],
     series_targets: dict[str, int],
     min_score: int,
+    *,
+    extract_content: bool = True,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    candidate_assets = [asset for asset in assets if candidate_score(asset) >= min_score]
+    catalog_references = [
+        str(entry.get("source_ref", ""))
+        for entry in catalog.get("titles", [])
+        if "published" not in str(entry.get("status", "")).casefold()
+        and entry.get("source_ref")
+    ]
+
+    def is_catalog_source(asset: Asset) -> bool:
+        asset_path = asset.path.casefold()
+        asset_stem = safe_slug(clean_title(asset.name))
+        return any(
+            asset_path.endswith(reference.casefold())
+            or asset_stem == safe_slug(clean_title(Path(reference).name))
+            for reference in catalog_references
+        )
+
+    candidate_assets = [
+        asset
+        for asset in assets
+        if candidate_score(asset) >= min_score or is_catalog_source(asset)
+    ]
     groups: dict[str, list[Asset]] = defaultdict(list)
     for asset in candidate_assets:
         groups[work_key(asset)].append(asset)
@@ -607,7 +699,7 @@ def build_asset_works(
         )
         measured: list[tuple[Asset, int, str, str]] = []
         for asset in group:
-            text = "" if blocked else extract_text(asset.local_path, asset.extension)
+            text = "" if blocked or not extract_content else extract_text(asset.local_path, asset.extension)
             measured_words = count_words(text)
             _, hint = title_and_word_hint(asset)
             words = measured_words or hint
@@ -630,13 +722,15 @@ def build_asset_works(
         delta = max(0, target - words)
         fingerprint = representative.sha256
         fingerprint_kind = "unlost-content" if fingerprint else ""
-        if not fingerprint:
+        if not fingerprint and not blocked and extract_content:
             fingerprint, fingerprint_kind = sha256_file(representative.local_path)
         if not fingerprint:
             fingerprint = hashlib.sha256(
                 f"{representative.path}:{representative.size}:{representative.mtime_ns}".encode()
             ).hexdigest()
             fingerprint_kind = "unlost-metadata"
+        remote_replica = representative.path.startswith("/Volumes/Users/")
+        accessible = False if remote_replica and not extract_content else representative.local_path.exists()
         works.append(
             {
                 "work_id": key,
@@ -651,7 +745,8 @@ def build_asset_works(
                 "length_delta": delta,
                 "completion_ratio": round(min(1.0, words / target), 4) if target else 0,
                 "source_count": len(group),
-                "source_accessible": representative.local_path.exists(),
+                "source_accessible": accessible,
+                "source_reachable": bool(representative.uri) if remote_replica else accessible,
                 "source_fingerprint": fingerprint,
                 "source_fingerprint_kind": fingerprint_kind,
                 "editorial_blocked": blocked,
@@ -665,7 +760,7 @@ def build_asset_works(
                     for asset in sorted(group, key=lambda item: item.path)
                     if asset.path != representative.path
                 ],
-                "remaining_gates": remaining_gates(declared_status, series, delta, representative.local_path.exists()),
+                "remaining_gates": remaining_gates(declared_status, series, delta, accessible),
             }
         )
     works.sort(key=lambda item: (item["editorial_blocked"], -item["length_delta"], item["title"].casefold()))
@@ -789,14 +884,27 @@ def reconcile(args: argparse.Namespace) -> dict[str, Any]:
                 assets.append(asset)
 
     targets = series_word_targets(catalog)
-    discovered, metrics = build_asset_works(assets, catalog, decisions, targets, args.min_score)
-    known = catalog_draft_works(catalog, targets)
+    discovered, metrics = build_asset_works(
+        assets,
+        catalog,
+        decisions,
+        targets,
+        args.min_score,
+        extract_content=not args.metadata_only,
+    )
+    known, consumed = join_catalog_sources(
+        catalog_draft_works(catalog, targets), discovered, targets
+    )
     catalog_ids = {
         identifier
         for entry in catalog.get("titles", [])
         for identifier in (safe_slug(entry["slug"]), safe_slug(normalized_title(entry["title"])))
     }
-    works = known + [work for work in discovered if work["work_id"] not in catalog_ids]
+    works = known + [
+        work
+        for work in discovered
+        if work["work_id"] not in catalog_ids and work["work_id"] not in consumed
+    ]
 
     lineage_hash, _ = sha256_file(DEFAULT_LINEAGE)
     profiles: list[dict[str, Any]] = []
@@ -821,6 +929,7 @@ def reconcile(args: argparse.Namespace) -> dict[str, Any]:
             "min_candidate_score": args.min_score,
             "publication_side_effects": False,
             "source_mutations": False,
+            "metadata_only": args.metadata_only,
         },
         "metrics": {
             "raw_prose_assets": len(assets),
@@ -845,6 +954,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--private-root", type=Path, default=DEFAULT_PRIVATE_ROOT)
     parser.add_argument("--database", action="append", type=Path)
     parser.add_argument("--min-score", type=int, default=5)
+    parser.add_argument(
+        "--metadata-only",
+        action="store_true",
+        help="resolve identities and accessibility without opening manuscript content",
+    )
     parser.add_argument("--strict", action="store_true")
     return parser
 
