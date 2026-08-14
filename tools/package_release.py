@@ -13,10 +13,10 @@ import tempfile
 from typing import Any
 
 try:
-    from .april_manuscript_editor import AUTHOR, CATALOG, PROJECT_ROOT, load_catalog, normalize_front_matter, resolve_source
+    from .april_manuscript_editor import AUTHOR, CATALOG, PROJECT_ROOT, epub_markdown, load_catalog, normalize_front_matter, resolve_source
     from .manuscript_auditor import audit_text, extract_text
 except ImportError:
-    from april_manuscript_editor import AUTHOR, CATALOG, PROJECT_ROOT, load_catalog, normalize_front_matter, resolve_source
+    from april_manuscript_editor import AUTHOR, CATALOG, PROJECT_ROOT, epub_markdown, load_catalog, normalize_front_matter, resolve_source
     from manuscript_auditor import audit_text, extract_text
 
 
@@ -57,19 +57,23 @@ def package_entry(entry: dict[str, Any], output_root: Path) -> dict[str, Any]:
 
     release_dir = output_root / str(entry["slug"])
     manuscript_path = release_dir / "manuscript.md"
+    epub_source_path = release_dir / "epub-manuscript.md"
     epub_path = release_dir / f"{entry['slug']}.epub"
     atomic_write(manuscript_path, manuscript.encode("utf-8"))
+    atomic_write(epub_source_path, epub_markdown(manuscript).encode("utf-8"))
     release_dir.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         [
             "pandoc",
-            str(manuscript_path),
+            str(epub_source_path),
             "--from=markdown",
             "--to=epub3",
             "--metadata",
             f"title={entry['title']}",
             "--metadata",
             f"author={AUTHOR}",
+            "--metadata",
+            "lang=en-US",
             "--epub-cover-image",
             str(cover),
             "--output",

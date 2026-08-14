@@ -46,6 +46,9 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertEqual("candidate_pending_final_editorial_review", record["status"])
             self.assertEqual(package_release.AUTHOR, record["author"])
             self.assertTrue((output / "trial" / "release-candidate.json").is_file())
+            command = run.call_args.args[0]
+            self.assertIn("lang=en-US", command)
+            self.assertIn(str(output / "trial" / "epub-manuscript.md"), command)
             self.assertEqual(
                 record,
                 json.loads((output / "trial" / "release-candidate.json").read_text()),

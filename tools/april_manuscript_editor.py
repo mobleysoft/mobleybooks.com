@@ -79,9 +79,29 @@ def normalize_front_matter(text: str, title: str) -> str:
     return text.strip() + "\n"
 
 
+def epub_markdown(text: str) -> str:
+    """Add structural headings for EPUB navigation without changing prose."""
+    text = re.sub(
+        r"(?i)(?<!\S)(Chapter\s+(?:\d+|[IVXLCDM]+))\s*:\s*",
+        r"\n\n# \1\n\n",
+        text,
+    )
+    text = re.sub(
+        r"(?i)(?<!\S)(Epilogue|Prologue)\s*:\s*",
+        r"\n\n# \1\n\n",
+        text,
+    )
+    lines: list[str] = []
+    for line in text.splitlines():
+        if re.match(r"^\s*(?:Chapter\s+(?:\d+|[IVXLCDM]+)|Epilogue|Prologue)\b", line, re.IGNORECASE):
+            line = "# " + line.lstrip("# ")
+        lines.append(line)
+    return "\n".join(lines).strip() + "\n"
+
+
 def chapter_sections(text: str) -> list[str]:
     heading = re.compile(
-        r"(?=(?:^|\n|\s{2,})(?:#{1,6}\s*)?Chapter\s+(?:\d+|[IVXLCDM]+)\s*(?::|\n))",
+        r"(?=(?<!\S)(?:#{1,6}\s*)?(?:(?:Chapter\s+(?:\d+|[IVXLCDM]+))|Prologue|Epilogue)\s*(?::|\n))",
         flags=re.IGNORECASE,
     )
     starts = [match.start() for match in heading.finditer(text)]
@@ -250,17 +270,21 @@ def edit_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, Any
         raise RuntimeError("compiled manuscript failed: " + ", ".join(audit["failures"]))
     manuscript_path = output_dir / "manuscript.md"
     atomic_write(manuscript_path, manuscript)
+    epub_source_path = output_dir / "epub-manuscript.md"
+    atomic_write(epub_source_path, epub_markdown(manuscript))
     epub_path = output_dir / f"{entry['slug']}.epub"
     cover_path = PROJECT_ROOT / "assets" / "covers" / f"{entry['slug']}-cover-v1.png"
     command = [
         "pandoc",
-        str(manuscript_path),
+        str(epub_source_path),
         "--from=markdown",
         "--to=epub3",
         "--metadata",
         f"title={entry['title']}",
         "--metadata",
         f"author={AUTHOR}",
+        "--metadata",
+        "lang=en-US",
     ]
     if cover_path.is_file():
         command.extend(["--epub-cover-image", str(cover_path)])

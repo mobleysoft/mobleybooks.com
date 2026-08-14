@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
+import tempfile
 
 from tools import editorial_gate
 
@@ -31,6 +33,33 @@ class EditorialGateTests(unittest.TestCase):
         self.assertEqual(72, review["prose_score"])
         self.assertEqual(0, review["commercial_readiness_score"])
         self.assertEqual("revise", review["recommended_action"])
+
+    def test_normalizes_ten_point_model_scores_to_percentages(self) -> None:
+        review = editorial_gate.normalize_chapter_review(
+            {
+                "coherence_score": 8,
+                "prose_score": 7,
+                "commercial_readiness_score": 6,
+                "recommended_action": "revise",
+            },
+            1,
+        )
+        self.assertEqual(80, review["coherence_score"])
+        self.assertEqual(70, review["prose_score"])
+        self.assertEqual(60, review["commercial_readiness_score"])
+
+    def test_parses_existing_source_override(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            manuscript = Path(directory) / "candidate.md"
+            manuscript.write_text("Candidate", encoding="utf-8")
+            overrides = editorial_gate.parse_source_overrides(
+                [f"trials-of-valor={manuscript}"]
+            )
+        self.assertEqual(manuscript.resolve(), overrides["trials-of-valor"])
+
+    def test_rejects_malformed_source_override(self) -> None:
+        with self.assertRaisesRegex(ValueError, "expected SLUG=PATH"):
+            editorial_gate.parse_source_overrides(["missing-path"])
 
 
 if __name__ == "__main__":

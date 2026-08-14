@@ -37,6 +37,19 @@ def atomic_json(path: Path, payload: object) -> None:
     temporary.replace(path)
 
 
+def parse_source_overrides(values: list[str]) -> dict[str, Path]:
+    overrides: dict[str, Path] = {}
+    for value in values:
+        slug, separator, raw_path = value.partition("=")
+        if not separator or not slug.strip() or not raw_path.strip():
+            raise ValueError(f"invalid source override {value!r}; expected SLUG=PATH")
+        path = Path(raw_path).expanduser().resolve()
+        if not path.is_file():
+            raise ValueError(f"source override does not exist: {path}")
+        overrides[slug.strip()] = path
+    return overrides
+
+
 def bounded_excerpt(text: str, maximum: int = 14_000) -> str:
     if len(text) <= maximum:
         return text
@@ -93,11 +106,19 @@ def normalize_chapter_review(payload: dict[str, Any], index: int) -> dict[str, A
     decision = str(payload.get("recommended_action", "revise")).casefold()
     if decision not in DECISIONS:
         decision = "revise"
-    def score(name: str) -> int:
+    score_names = ("coherence_score", "prose_score", "commercial_readiness_score")
+    raw_scores: dict[str, float] = {}
+    for name in score_names:
         try:
-            return max(0, min(100, int(payload.get(name, 0))))
+            raw_scores[name] = float(payload.get(name, 0))
         except (TypeError, ValueError):
-            return 0
+            raw_scores[name] = 0
+    uses_ten_point_scale = all(0 <= value <= 10 for value in raw_scores.values())
+
+    def score(name: str) -> int:
+        value = raw_scores[name] * (10 if uses_ten_point_scale else 1)
+        return max(0, min(100, round(value)))
+
     return {
         "chapter": index,
         "coherence_score": score("coherence_score"),
@@ -111,7 +132,9 @@ def normalize_chapter_review(payload: dict[str, Any], index: int) -> dict[str, A
 
 
 def review_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
-    source = resolve_source(str(entry["source_ref"]))
+    source = args.source_overrides.get(str(entry["slug"]))
+    if source is None:
+        source = resolve_source(str(entry["source_ref"]))
     manuscript = normalize_front_matter(extract_text(source), str(entry["title"]))
     sections = [section for section in chapter_sections(manuscript) if len(section.split()) >= 80]
     output_dir = args.output_root / str(entry["slug"])
@@ -121,7 +144,10 @@ def review_entry(entry: dict[str, Any], args: argparse.Namespace) -> dict[str, A
     for index, section in enumerate(sections, start=1):
         checkpoint = chapter_dir / f"{index:04d}.json"
         if checkpoint.is_file() and not args.force:
-            review = json.loads(checkpoint.read_text(encoding="utf-8"))
+            review = normalize_chapter_review(
+                json.loads(checkpoint.read_text(encoding="utf-8")),
+                index,
+            )
         else:
             prompt = f"""BOOK: {entry['title']}
 AUTHOR: {AUTHOR}
@@ -172,7 +198,10 @@ mid-book is a release blocker. Use this exact schema:
     if decision not in DECISIONS:
         decision = "revise"
     try:
-        readiness = max(0, min(100, int(synthesis.get("commercial_readiness_score", 0))))
+        raw_readiness = float(synthesis.get("commercial_readiness_score", 0))
+        if 0 <= raw_readiness <= 10:
+            raw_readiness *= 10
+        readiness = max(0, min(100, round(raw_readiness)))
     except (TypeError, ValueError):
         readiness = 0
     report = {
@@ -206,8 +235,19 @@ def main() -> int:
     parser.add_argument("--port", type=int, default=18087)
     parser.add_argument("--max-chars", type=int, default=14_000)
     parser.add_argument("--max-tokens", type=int, default=1_400)
+    parser.add_argument(
+        "--source",
+        action="append",
+        default=[],
+        metavar="SLUG=PATH",
+        help="review an explicit revised manuscript for a catalog slug",
+    )
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
+    try:
+        args.source_overrides = parse_source_overrides(args.source)
+    except ValueError as error:
+        parser.error(str(error))
     entries = {entry["slug"]: entry for entry in load_catalog(args.catalog)["titles"]}
     unknown = [slug for slug in args.slugs if slug not in entries]
     if unknown:
