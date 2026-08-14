@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-08-14T02:41:50-04:00",
+  "updated_at": "2026-08-14T07:47:39Z",
   "publication_policy": "Explicit SFW allowlist. Discovery sources remain private and cannot publish directly.",
   "titles": [
     {
@@ -90,6 +90,66 @@
       "retail_url": "https://www.amazon.com/dp/B0D92SXRY2",
       "source_kind": "Local manuscript, Dell replica, and KDP record",
       "source_ref": "verdantvale/Verdant Vale 03 Seraphina Published.txt"
+    },
+    {
+      "slug": "historias-heartbeat-lilleth",
+      "title": "Lilleth: The First Wife",
+      "series": "Historia's Heartbeat",
+      "series_position": "Book 1",
+      "author": "John Alexander Mobley",
+      "genre": "Alternate-history time-travel fantasy",
+      "status": "Published ebook and audiobook",
+      "words": 10794,
+      "description": "A timepiece sends John from a failing future into humanity's deep past, where his pursuit of a temporal saboteur becomes entwined with Lilleth and the fragile beginnings of civilization.",
+      "accent": "#aa675a",
+      "retail_url": "https://www.amazon.com/dp/B0D8T3W88C",
+      "source_kind": "Dell manuscript and KDP record",
+      "source_ref": "dell_books/Docs/HistoriasHeartbeat01_LillethTheFirstWife.docx"
+    },
+    {
+      "slug": "historias-heartbeat-nefertiti",
+      "title": "Nefertiti, The Pharaoh Queen",
+      "series": "Historia's Heartbeat",
+      "series_position": "Book 2",
+      "author": "John Alexander Mobley",
+      "genre": "Alternate-history time-travel fantasy",
+      "status": "Published ebook and audiobook",
+      "words": 11886,
+      "description": "John emerges in ancient Egypt and follows a disturbance in the timeline toward Nefertiti, the royal court, and a struggle over the future of the Aten revolution.",
+      "accent": "#c69b3b",
+      "retail_url": "https://www.amazon.com/dp/B0D92Z42WY",
+      "source_kind": "Dell manuscript and KDP record",
+      "source_ref": "dell_books/Docs/Historia's Heartbeat 02 Nefertiti.docx"
+    },
+    {
+      "slug": "binary-prophecy",
+      "title": "Binary Prophecy",
+      "series": "Standalone",
+      "series_position": "Novel",
+      "author": "John Alexander Mobley",
+      "genre": "Cosmic science fantasy",
+      "status": "Published ebook and audiobook",
+      "words": 12691,
+      "description": "AI researcher Lucas Blackwood becomes a piece in a multiversal contest as an ancient prophecy, celestial powers, and his unfinished intelligence system converge.",
+      "accent": "#526ea8",
+      "retail_url": "https://www.amazon.com/dp/B0D8SG2K45",
+      "source_kind": "Dell manuscript and KDP record",
+      "source_ref": "dell_books/Docs/Binary Prophecy.docx"
+    },
+    {
+      "slug": "the-orb",
+      "title": "The Orb",
+      "series": "Standalone",
+      "series_position": "Novella",
+      "author": "John Alexander Mobley",
+      "genre": "Science-fiction mystery",
+      "status": "Published ebook and audiobook",
+      "words": 4799,
+      "description": "An ancient orb that catalogs life returns in Neo-Tokyo, drawing a cybernetic detective into an anomaly inside the city's governing Nexus.",
+      "accent": "#438b97",
+      "retail_url": "https://www.amazon.com/dp/B0D8WDNXLS",
+      "source_kind": "Dell manuscript and KDP record",
+      "source_ref": "dell_books/Docs/The Orb.docx"
     },
     {
       "slug": "arcane-seven-mission-zero",

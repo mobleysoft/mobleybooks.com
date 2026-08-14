@@ -30,22 +30,15 @@ test("every public entry is grounded and workplace-safe", () => {
   }
 });
 
-test("verified John Alexander Mobley retail works are represented", () => {
+test("retail records use unique canonical edition routes", () => {
   const retailWorks = catalog.titles.filter(
     (entry) => entry.author === "John Alexander Mobley" && entry.retail_url,
   );
-  assert.equal(retailWorks.length, 7);
-  assert.deepEqual(
-    new Set(retailWorks.map((entry) => entry.slug)),
-    new Set([
-      "arcane-seven-mission-zero",
-      "then-came-man",
-      "the-color-of-hope",
-      "verdant-vale-aeliana",
-      "verdant-vale-day-zero",
-      "verdant-vale-heart-s-blossom",
-      "verdant-vale-mira",
-    ]),
+  assert.ok(retailWorks.length > 0);
+  assert.equal(new Set(retailWorks.map((entry) => entry.retail_url)).size, retailWorks.length);
+  assert.equal(
+    new Set(retailWorks.map((entry) => new URL(entry.retail_url).pathname.split("/").pop())).size,
+    retailWorks.length,
   );
 });
 

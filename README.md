@@ -12,8 +12,15 @@ Retail links are allowed only when an authenticated KDP record confirms the
 edition and the URL is a canonical Amazon ASIN route. A retail record does not
 override the editorial allowlist.
 
+Private estate reconciliation and per-work April profile emission are documented
+in `docs/LIBRARY_RECONCILIATION.md`. The bounded subsidiary interfaces for the
+future direct store are documented in `docs/STORE_PLATFORM.md` and
+`catalog/store-platform.json`.
+
 ```sh
 node --test test/*.test.mjs
+python3 -m unittest test/test_library_reconciler.py
+python3 tools/library_reconciler.py --strict
 node tools/build-worker-module.mjs ../nginx/workers/venture-fleet/src/mobleybooks.generated.js
 ```
 

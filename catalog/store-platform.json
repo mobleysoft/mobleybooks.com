@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "owner": "mobleybooks.com",
+  "principle": "One storefront contract, narrow subsidiary interfaces, and no claimed integration without passing evidence.",
+  "interfaces": [
+    {
+      "provider": "unlost",
+      "cowlick": "Private estate discovery, hydration, deduplication, and source provenance",
+      "release_role": "supply-discovery",
+      "status": "implemented-private-baseline"
+    },
+    {
+      "provider": "apex-april",
+      "cowlick": "Immutable-source manuscript completion, continuity, and editorial quality gates",
+      "release_role": "content-production",
+      "status": "profile-emitter-implemented"
+    },
+    {
+      "provider": "literacraft.com",
+      "cowlick": "Exclusive genre-fiction reader, serialization, and subscription experience",
+      "release_role": "reader-runtime",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "singularityui.com",
+      "cowlick": "Accessible storefront, library, checkout, and reader interface primitives",
+      "release_role": "interface-system",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "authfor.com",
+      "cowlick": "Passkeys, sessions, customer identity, libraries, and entitlement checks",
+      "release_role": "identity-and-entitlements",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "vendyai.com",
+      "cowlick": "Provider-orchestrated checkout, receipts, refunds, subscriptions, and payment events",
+      "release_role": "commerce",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "consenta.cc",
+      "cowlick": "Consent records, privacy controls, retention policy, and data-subject workflows",
+      "release_role": "privacy-and-compliance",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "bookeepr.cc",
+      "cowlick": "Revenue, royalty, tax, refund, and settlement ledger",
+      "release_role": "financial-ledger",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "mailguyai.com",
+      "cowlick": "Transactional delivery for receipts, sign-in, library changes, and release notices",
+      "release_role": "transactional-messaging",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "marketingium.com",
+      "cowlick": "Attributed launch campaigns, lifecycle marketing, and demand measurement",
+      "release_role": "distribution",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "bookclubs.cc",
+      "cowlick": "Reader discovery, recommendations, groups, reviews, and advance-reader programs",
+      "release_role": "community",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "book2film.cc",
+      "cowlick": "Adaptation packages and screen-rights opportunities derived from approved books",
+      "release_role": "rights-expansion",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "glyphyai.com",
+      "cowlick": "Cover identity and edition artwork with provenance",
+      "release_role": "visual-packaging",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "audiovizai.com",
+      "cowlick": "Audiobook, sample, and synchronized audiovisual promotional assets",
+      "release_role": "multimedia-editions",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "glcx.cc",
+      "cowlick": "Terms, licenses, rights-chain review, and commercial contract controls",
+      "release_role": "legal",
+      "status": "planned-integration"
+    },
+    {
+      "provider": "mobleyreport.com",
+      "cowlick": "Source-grounded release coverage and syndication without controlling catalog eligibility",
+      "release_role": "editorial-publicity",
+      "status": "planned-integration"
+    }
+  ],
+  "release_gates": [
+    "catalog approval",
+    "source provenance",
+    "workplace-safety review",
+    "rights-chain review",
+    "identity and entitlement tests",
+    "successful payment and refund tests",
+    "privacy and deletion tests",
+    "accessible reader tests",
+    "delivery and observability tests"
+  ]
+}
