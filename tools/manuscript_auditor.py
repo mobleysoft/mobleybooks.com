@@ -75,11 +75,14 @@ def audit_text(text: str, *, source: str = "") -> dict:
         if count:
             contamination[category] = count
 
-    chapter_matches = re.findall(
-        r"(?:^|\n|\s)(?:#{1,6}\s*)?Chapter\s+(?:\d+|[IVXLCDM]+)(?=\s*[:\-]|\s+[A-Z])",
-        text,
-        flags=re.IGNORECASE,
-    )
+    chapter_starts = {
+        match.start()
+        for pattern in (
+            r"(?im)^\s*(?:#{1,6}\s*)?Chapter\s+(?:\d+|[IVXLCDM]+)(?:\s*[:\-][^\n]*)?\s*$",
+            r"(?i)(?<!\S)(?:#{1,6}\s*)?Chapter\s+(?:\d+|[IVXLCDM]+)\s*:",
+        )
+        for match in re.finditer(pattern, text)
+    }
     stripped = text.rstrip()
     incomplete_ending = bool(
         re.search(r"(?:\bYou\s+continue\b|\bto be continued\b|\[CONTINUE\]|\.{3})\s*$", stripped, re.I)
@@ -93,7 +96,7 @@ def audit_text(text: str, *, source: str = "") -> dict:
         failures.append("assistant_or_rendering_contamination")
     if duplicate_ratio > 0.05:
         failures.append("excessive_exact_sentence_repetition")
-    if len(words) >= 5_000 and len(chapter_matches) < 3:
+    if len(words) >= 5_000 and len(chapter_starts) < 3:
         failures.append("insufficient_detectable_structure")
     if len(words) >= 1_000 and len(nonempty_lines) < 3:
         failures.append("flattened_layout")
@@ -105,7 +108,7 @@ def audit_text(text: str, *, source: str = "") -> dict:
         "source": source,
         "words": len(words),
         "sentences": len(sentences),
-        "chapters_detected": len(chapter_matches),
+        "chapters_detected": len(chapter_starts),
         "nonempty_lines": len(nonempty_lines),
         "exact_duplicate_sentence_instances": duplicate_instances,
         "exact_duplicate_sentence_ratio": round(duplicate_ratio, 4),

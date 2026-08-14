@@ -43,6 +43,15 @@ class ManuscriptAuditorTests(unittest.TestCase):
         self.assertIn("flattened_layout", report["failures"])
         self.assertEqual(1, report["nonempty_lines"])
 
+    def test_counts_bare_heading_followed_by_quoted_dialogue(self) -> None:
+        chapters = []
+        for chapter in range(1, 4):
+            prose = '"No," the investigator said. ' * 400
+            chapters.append(f"Chapter {chapter}\n\n{prose}")
+        report = manuscript_auditor.audit_text("\n\n".join(chapters))
+        self.assertEqual(3, report["chapters_detected"])
+        self.assertTrue(report["mechanical_gate_passed"])
+
 
 if __name__ == "__main__":
     unittest.main()
