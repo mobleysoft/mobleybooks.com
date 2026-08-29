@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mobleybooks.com/sitemap.xml
