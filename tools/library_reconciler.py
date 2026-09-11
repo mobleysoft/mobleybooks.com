@@ -208,7 +208,7 @@ def load_json(path: Path, default: Any = None) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class Asset:
     database: str
     path: str
