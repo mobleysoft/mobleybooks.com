@@ -19,7 +19,16 @@ CONTAMINATION_PATTERNS = {
         r"\bClaude can make mistakes\b",
         r"\bmessages remaining until\b",
         r"\bSend Message\b",
-        r"\bYou\s+Continue(?:\s+with)?\b",
+        # Real false positive found 2026-09-19 (Book_TheNewFounding02.mobtxt,
+        # "Can you continue?" in ordinary dialogue): this pattern targets a
+        # chat-UI label ("You" / "Continue" as adjacent capitalized button
+        # text), not the natural-language phrase "you continue" - the rest
+        # of the module applies re.IGNORECASE uniformly, which made this one
+        # UI-shaped pattern match lowercase prose. Scoped case-sensitivity
+        # override (Python re supports (?-i:...) since 3.6) so this pattern
+        # still requires real capitalization, while every other pattern in
+        # this file keeps matching case-insensitively as intended.
+        r"(?-i:\bYou\s+Continue(?:\s+with)?\b)",
     ),
     "assistant_meta_prose": (
         r"\bIf you(?:'|’)d like to continue\b",
