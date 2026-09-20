@@ -391,6 +391,34 @@
       "accent": "#69a5aa",
       "source_kind": "Google Drive manuscript",
       "source_ref": "drive:1-tb3C2jf7AMfDdeqr6FbTHnkjMK8qhZE1f3pNnoyhYw"
+    },
+    {
+      "slug": "the-language-of-masks",
+      "title": "The Language of Masks, Volume 1: The Double-Edged Tongue",
+      "series": "Standalone",
+      "series_position": "Novel",
+      "author": "John Alexander Mobley",
+      "genre": "Romantic comedy / contemporary family drama",
+      "status": "Complete manuscript, editorial-reviewed, not yet published",
+      "words": 55331,
+      "description": "At her sister's wedding, Maya's Black vernacular-fluent world collides with her boyfriend Daniel's buttoned-up corporate one, forcing the couple to code-switch through family, career, and love to find out which version of themselves is real.",
+      "accent": "#c17d3f",
+      "source_kind": "A.P.R.I.L. engine generation, editorial-reviewed",
+      "source_ref": "animetrope/productions/code_switched_v2/books/01_the_language_of_masks_volume_1_the_double_edged_tongue.txt"
+    },
+    {
+      "slug": "the-shelving-of-absences",
+      "title": "The Shelving of Absences",
+      "series": "Standalone",
+      "series_position": "Novel",
+      "author": "John Alexander Mobley",
+      "genre": "Magical realism / mystery",
+      "status": "Complete manuscript, editorial-reviewed, not yet published",
+      "words": 46579,
+      "description": "At Meridian Fulfillment, a warehouse that quietly reorganizes its own shelving overnight, overnight picker Odessa finds a coworker impossibly relocated after a murder and discovers the killer never left the ground floor - and is still clocking in for shifts beside her.",
+      "accent": "#5c7a6e",
+      "source_kind": "A.P.R.I.L. engine generation, editorial-reviewed",
+      "source_ref": "animetrope/productions/fulfillment_v2/books/01_the_shelving_of_absences.txt"
     }
   ]
 }
