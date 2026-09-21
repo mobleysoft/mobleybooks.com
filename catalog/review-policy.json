@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "default": "deny",
+  "public_states": [
+    "approved_sfw"
+  ],
+  "requirements": [
+    "A readable source artifact exists in a verified local, Dell-indexed, or connected Google Drive source.",
+    "The title, author or pen name, length, and development status are grounded in that artifact.",
+    "A human or bounded editorial audit has classified the work as suitable for a professional public catalog.",
+    "The entry contains no private source path, credential, unpublished manuscript text, or mature-title metadata."
+  ],
+  "discovery_rule": "Search and indexing systems can create review candidates but cannot publish them.",
+  "privacy_rule": "Excluded and review-needed works are represented only by aggregate private counts; their titles never enter a public bundle.",
+  "scope_note": "This policy governs the public MobleyBooks catalog. It does not delete, rename, or alter private writing archives."
+}

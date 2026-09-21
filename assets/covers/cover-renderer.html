@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MobleyBooks cover compositor</title>
+  <style>
+    *{box-sizing:border-box}html,body{width:1600px;height:2560px;margin:0;overflow:hidden}body{--accent:#70e6df;position:relative;color:#f7f4ec;background:#07121d center/cover no-repeat;font-family:"Avenir Next Condensed","Helvetica Neue",sans-serif}body:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,8,15,.92) 0%,rgba(2,8,15,.48) 25%,transparent 52%,rgba(2,8,15,.25) 70%,rgba(2,8,15,.94) 100%)}body:after{content:"";position:absolute;inset:54px;border:2px solid color-mix(in srgb,var(--accent) 62%,transparent);box-shadow:inset 0 0 120px rgba(0,0,0,.24)}main{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:104px 118px 114px}.imprint{display:flex;align-items:center;gap:26px;color:var(--accent);font:700 22px/1 "SFMono-Regular",Consolas,monospace;letter-spacing:.28em;text-transform:uppercase}.imprint:before{content:"M";display:grid;place-items:center;width:62px;height:62px;border:2px solid var(--accent);font-size:27px;letter-spacing:0}.title-wrap{max-width:1320px;margin-top:102px}.title{margin:0;text-wrap:balance;text-shadow:0 8px 42px rgba(0,0,0,.7);font:500 188px/.82 "Bodoni 72","Didot",Georgia,serif;letter-spacing:-.055em}.subtitle{max-width:1050px;margin:38px 0 0;color:var(--accent);font:700 35px/1.25 "SFMono-Regular",Consolas,monospace;letter-spacing:.16em;text-transform:uppercase}.spacer{flex:1}.rule{width:180px;height:8px;margin-bottom:38px;background:var(--accent)}.author{margin:0;font:600 54px/1 "Avenir Next Condensed","Helvetica Neue",sans-serif;letter-spacing:.12em;text-transform:uppercase}.edition{margin-top:22px;color:rgba(255,255,255,.7);font:600 20px/1 "SFMono-Regular",Consolas,monospace;letter-spacing:.25em;text-transform:uppercase}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="imprint">MobleyBooks Original</div>
+    <div class="title-wrap"><h1 class="title" id="title"></h1><p class="subtitle" id="subtitle"></p></div>
+    <div class="spacer"></div>
+    <div class="rule"></div><p class="author">John Alexander Mobley</p><p class="edition">Digital first edition</p>
+  </main>
+  <script>
+    const options=new URLSearchParams(location.search);
+    const art=options.get('art');
+    const allowed=/^[a-z0-9-]+-art-v1\.png$/;
+    if(!art||!allowed.test(art))throw new Error('invalid art');
+    document.body.style.backgroundImage=`url("${art}" )`;
+    document.body.style.setProperty('--accent',options.get('accent')||'#70e6df');
+    document.getElementById('title').textContent=options.get('title')||'Untitled';
+    document.getElementById('subtitle').textContent=options.get('subtitle')||'';
+  </script>
+</body>
+</html>
